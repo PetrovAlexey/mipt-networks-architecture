@@ -11,6 +11,7 @@ set(STREAMER_SOURCES
 	rtp_parse.cpp
 	helpers.cpp
 	helpers.hpp
+	ArgParser.cpp
 )
 
 add_subdirectory(libdatachannel)

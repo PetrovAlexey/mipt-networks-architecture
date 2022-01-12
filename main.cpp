@@ -1,5 +1,6 @@
 #include "helpers.hpp"
 #include "rtp_parse.h"
+#include "ArgParser.hpp"
 #include <fstream>
 #include <netinet/in.h>
 #include <thread>
@@ -9,6 +10,7 @@ using namespace rtc;
 using namespace std;
 using namespace std::chrono_literals;
 
+using json = nlohmann::json;
 
 template <class T> weak_ptr<T> make_weak_ptr(shared_ptr<T> ptr) { return ptr; }
 
@@ -36,10 +38,46 @@ void addToStream(shared_ptr<Client> client, bool isAddingVideo);
 /// Start stream
 void startStream();
 
+const string defaultStunAddress = "stun:stun.l.google.com:19302";
+string stunServer = defaultStunAddress;
 
 int main(int argc, char **argv) try {
+    bool enableDebugLogs = false;
+    bool printHelp = false;
+    auto parser = ArgParser({{"s", "server"}}, {{"h", "help"}, {"v", "verbose"}});
+    auto parsingResult = parser.parse(argc, argv, [](string key, string value) {
+        if (key == "server") {
+            stunServer = value;
+        } else {
+            cerr << "Invalid option --" << key << " with value " << value << endl;
+            return false;
+        }
+        return true;
+    }, [&enableDebugLogs, &printHelp](string flag){
+        if (flag == "verbose") {
+            enableDebugLogs = true;
+        } else if (flag == "help") {
+            printHelp = true;
+        } else {
+            cerr << "Invalid flag --" << flag << endl;
+            return false;
+        }
+        return true;
+    });
+    if (!parsingResult) {
+        return 1;
+    }
+
+    if (printHelp) {
+        cout << "usage: stream_test [-s server] [-v] [-h]" << endl
+             << "Arguments:" << endl
+             << "\t -s " << "Stun/Turn server IP address (default: " << defaultStunAddress << ")." << endl
+             << "\t -v " << "Enable debug logs." << endl
+             << "\t -h " << "Print this help and exit." << endl;
+        return 0;
+    }
+
     Configuration config;
-    string stunServer = "stun:stun.l.google.com:19302";
     cout << "Stun server is " << stunServer << endl;
     config.iceServers.emplace_back(stunServer);
     config.disableAutoNegotiation = true;
@@ -128,7 +166,7 @@ shared_ptr<Client> createPeerConnection(const Configuration &config,
         if (state == PeerConnection::GatheringState::Complete) {
             if(auto pc = wpc.lock()) {
                 auto description = pc->localDescription();
-                nlohmann::json message = {
+                json message = {
                     {"id", id},
                     {"type", description->typeString()},
                     {"sdp", string(description.value())}
@@ -278,7 +316,7 @@ void streamVideo(const string filename) {
                 send = trackData->track->send(*message);
             } catch (...) {
                 send = false;
-				std::cout << "Failed to send" << std::endl;
+                std::cout << "Failed to send" << std::endl;
             }
             if (!send) {
                 break;

@@ -2,9 +2,19 @@
 
 Репозиторий для домашней работы по курсу Архитектура компьютерных сетей [Петров Алексей].
 
+## Build
+
+Сборка происходит с помощью cmake
+
+```sh
+$ mkdir build
+$ cmake ..
+$ make
+```
+
 # Simple Streaming H264
 
-Стрим архива h264 клиенту в браузер по WebRTC в однопоточном режиме.
+Консольное приложение для стрима архива h264 клиенту в браузер по WebRTC в однопоточном режиме.
 
 ## Start the web
 
@@ -13,11 +23,16 @@
 ## Start the streamer
 
 ```sh
-$ cd build/examples/streamer_test
+$ cd build/streamer_test
 $ ./streamer_test
 ```
 
-Вводим в консоль `offer` и получаем строку json:
+Можно указать stun/turn сервер
+```cd build/streamer_test -s turn:some.server.ru```
+
+По умолчанию используется `stun:stun.l.google.com:19302`
+
+После запуска вводим в консоль `offer` и получаем строку json:
 
 Например
 
@@ -29,7 +44,7 @@ $ ./streamer_test
 
 Далее сгенерированный ответ записываем в консоль:
 
-`answer` 
+`answer`
 ```json
 {"type":"answer","sdp":"v=0\r\no=mozilla...THIS_IS_SDPARTA-90.0 1447130223547361748 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8A:9B:76:B7:04:EE:D0:76:FC:74:54:9C:C9:04:34:01:0A:D9:B7:A4:CE:05:2A:B6:46:9B:DE:26:52:4F:F6:BB\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=video 9 UDP/TLS/RTP/SAVPF 102\r\nc=IN IP4 0.0.0.0\r\na=recvonly\r\na=fmtp:102 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\r\na=ice-pwd:e1072338b8ea5b93588e5669f1f159f6\r\na=ice-ufrag:c86b5471\r\na=mid:video-stream\r\na=rtcp-fb:102 nack\r\na=rtcp-fb:102 nack pli\r\na=rtcp-fb:102 goog-remb\r\na=rtcp-mux\r\na=rtpmap:102 H264/90000\r\na=setup:active\r\na=ssrc:4206433783 cname:{719f8c79-8b08-4e00-97d4-e133fa629fe4}\r\n"}
 ```
